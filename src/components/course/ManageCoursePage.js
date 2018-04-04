@@ -6,51 +6,67 @@ import * as authorActions from '../../actions/authorActions';
 import { bindActionCreators } from 'redux';
 import CourseForm from './CourseForm';
 import toastr from 'toastr';
+import { authorsFormattedForDropdown } from '../../selectors/selectors';
 
-class ManageCoursePage extends Component {
-    constructor(props,context) {
+export class ManageCoursePage extends Component {
+    constructor(props, context) {
         super(props);
         this.state = {
             course: Object.assign({}, this.props.course),
             errors: {},
             saving: false
         };
-        this.updateCourseState =this.updateCourseState.bind(this);
+        this.updateCourseState = this.updateCourseState.bind(this);
         this.saveCourse = this.saveCourse.bind(this);
     }
-    componentWillReceiveProps(nextProps){
-        if(this.props.course.id != nextProps.id){
-            this.setState({course:Object.assign({}, nextProps.course)});
+    componentWillReceiveProps(nextProps) {
+        if (this.props.course.id != nextProps.id) {
+            this.setState({ course: Object.assign({}, nextProps.course) });
         }
     }
-    updateCourseState(evt){
+    updateCourseState(evt) {
         const field = evt.target.name;
-        let course = Object.assign({},this.state.course);
-        course[field]= evt.target.value;
-        return this.setState({course});
+        let course = Object.assign({}, this.state.course);
+        course[field] = evt.target.value;
+        return this.setState({ course });
     }
-    saveCourse(evt){
+    courseFormIsValid() {
+        let formIsValid = true;
+        let errors = {};
+
+        if((this.state.course.title.length <5)) {
+            errors.title = 'Title must be atleast 5 characters.';
+            formIsValid = false;
+        }
+
+        this.setState({errors});
+        return formIsValid;
+    }
+    saveCourse(evt) {
         evt.preventDefault();
-        this.setState({saving:true});
+        if (!this.courseFormIsValid()) {
+            return;
+        }
+        this.setState({ saving: true });
         this.props.actions.saveCourse(this.state.course)
-        .then(()=> this.redirect())
-        .catch(error => {
-            toastr.error(error);
-            this.setState({saving:false});
-        });
-        
+            .then(() => this.redirect())
+            .catch(error => {
+                toastr.error(error);
+                this.setState({ saving: false });
+            });
+
         //using context instead of history:
         //this.context.router.push('/courses');
     }
-    redirect(){
-        this.setState({saving:false});
+    redirect() {
+        this.setState({ saving: false });
         toastr.success('Course saved');
         this.props.history.push('/courses');
     }
     render() {
         return (
             <div>
-                <h1>Manage Course</h1>
+
                 <CourseForm
                     onChange={this.updateCourseState}
                     course={this.state.course}
@@ -73,24 +89,19 @@ ManageCoursePage.propTypes = {
 //     router:PropTypes.object
 // }
 function mapStateToProps(state, ownProps) {
-    let course ={};
+    let course = {};
 
-    if(state.courses.length>0 && ownProps.match.params.id){
-        course = state.courses.find((course)=>{
+    if (state.courses.length > 0 && ownProps.match.params.id) {
+        course = state.courses.find((course) => {
             return course.id == ownProps.match.params.id;
         });
     } else {
-    course = { id: "", watchHref: '', title: '', authorId: '', length: '', category: '' };
+        course = { id: "", watchHref: '', title: '', authorId: '', length: '', category: '' };
     }
-    const authorsFormattedForDropdown = state.authors.map(author=>{
-        return {
-            value:author.id,
-            text:author.firstName+" "+author.lastName
-        };
-    });
+
     return {
         course: course,
-        authors: authorsFormattedForDropdown
+        authors: authorsFormattedForDropdown(state.authors)
     };
 }
 function mapDispatchToProps(dispatch) {

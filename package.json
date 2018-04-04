@@ -9,7 +9,15 @@
     "lint": "node_modules/.bin/esw webpack.config.* src tools",
     "lint:watch": "npm run lint -- --watch",
     "test": "mocha --reporter spec tools/testSetup.js \"src/**/*.test.js\"",
-    "test:watch": "npm run test -- --watch"
+    "test:watch": "npm run test -- --watch",
+
+    "clean-dist": "npm run remove-dist && mkdir dist",
+    "remove-dist": "node_modules/.bin/rimraf ./dist",
+    "build:html": "babel-node tools/buildHTML.js",
+    "prebuild": "npm-run-all clean-dist test lint build:html",
+    "build": "babel-node tools/build.js",
+    "postbuild":"babel-node tools/distServer.js"
+
   },
   "author": "Cory House",
   "license": "MIT",
@@ -20,8 +28,8 @@
     "jquery": "3.0.0",
     "prop-types": "^15.6.1",
     "rc-menu": "^6.2.6",
-    "react": "^15.5.4",
-    "react-dom": "^15.5.4",
+    "react": "^16.3.0",
+    "react-dom": "^16.3.0",
     "react-redux": "^5.0.7",
     "react-router-dom": "^4.2.2",
     "react-router-redux": "4.0.4",
@@ -44,6 +52,7 @@
     "cross-env": "1.0.7",
     "css-loader": "0.23.1",
     "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "2.9.0",
     "eslint-plugin-import": "1.6.1",
     "eslint-plugin-react": "5.0.1",
@@ -58,7 +67,6 @@
     "nock": "8.0.0",
     "npm-run-all": "1.8.0",
     "open": "0.0.5",
-    "react-addons-test-utils": "^15.0.2",
     "redux-devtools-extension": "^2.13.2",
     "redux-immutable-state-invariant": "1.2.3",
     "redux-mock-store": "1.0.2",
